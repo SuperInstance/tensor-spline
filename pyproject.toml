@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "tensor-spline"
+version = "1.0.0"
+description = "Compressed neural network layers — Eisenstein lattice splines and low-rank factorization"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+dependencies = ["torch>=2.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
