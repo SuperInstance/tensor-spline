@@ -61,6 +61,13 @@ Use LowRankLinear for classification tasks instead.
 - `gaussian` — Gaussian RBF
 - `bspline` — Cubic B-spline kernel
 
+## Related
+
+- **[plato-training](https://github.com/SuperInstance/plato-training)** — Micro model training (primary consumer of SplineLinear)
+- **[eisenstein](https://github.com/SuperInstance/eisenstein)** — Eisenstein integer arithmetic (mathematical foundation)
+- **[plato-types](https://github.com/SuperInstance/plato-types)** — Tile lifecycle and provenance
+- **[ASSEMBLY-GUIDE](https://github.com/SuperInstance/plato-training/blob/master/ASSEMBLY-GUIDE.md)** — Full ecosystem assembly guide
+
 ## License
 
 MIT
