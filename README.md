@@ -69,6 +69,21 @@ Use LowRankLinear for classification tasks instead.
 - **[plato-types](https://github.com/SuperInstance/plato-types)** — Tile lifecycle and provenance
 - **[ASSEMBLY-GUIDE](https://github.com/SuperInstance/plato-training/blob/master/ASSEMBLY-GUIDE.md)** — Full ecosystem assembly guide
 
+## Mesh Protocol
+
+tensor-spline supports the SuperInstance mesh protocol. When co-installed with [plato-core](https://github.com/SuperInstance/plato-core), compression capabilities auto-register with the shared registry.
+
+```bash
+pip install tensor-spline[mesh]
+```
+
+This enables:
+- `spline-linear` and `low-rank` compressors discoverable via the mesh registry
+- `inject`, `measure`, and `recommend` utilities available to other mesh services
+- Entry-point based plugin loading (`superinstance.plugins`)
+
+Works standalone without plato-core — graceful degradation via `try/except`.
+
 ## License
 
 MIT

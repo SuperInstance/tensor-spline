@@ -11,9 +11,15 @@ requires-python = ">=3.9"
 license = {text = "MIT"}
 dependencies = ["torch>=2.0"]
 
+[project.optional-dependencies]
+mesh = ["plato-core>=0.1.0"]
+
+[project.entry-points."superinstance.plugins"]
+tensor-spline = "tensor_spline.mesh:register_tensor_spline"
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 
 [tool.setuptools.packages.find]
-include = ["*"]
+include = ["tensor_spline*"]
 exclude = ["tests*"]

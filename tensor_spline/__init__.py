@@ -20,3 +20,11 @@ from .low_rank import LowRankLinear, LowRankClassifier, inject_low_rank, recomme
 from .hierarchical_spline import HierarchicalSplineLinear, HierarchicalSplineClassifier, inject_hierarchical_spline
 
 __version__ = "1.0.0"
+
+# Auto-register with mesh if plato-core is installed
+try:
+    from plato_core.registry import registry
+    from tensor_spline.mesh import register_tensor_spline
+    register_tensor_spline(registry)
+except ImportError:
+    pass  # Standalone mode
