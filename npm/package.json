@@ -1,0 +1,31 @@
+{
+  "name": "@superinstance/tensor-spline",
+  "version": "1.0.0",
+  "description": "Neural network layers with Eisenstein lattice weight parameterization. 5-20x compression over dense layers.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/test.js"
+  },
+  "keywords": [
+    "neural-network",
+    "compression",
+    "eisenstein",
+    "spline",
+    "machine-learning",
+    "model-compression",
+    "low-rank",
+    "weight-quantization"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SuperInstance/tensor-spline"
+  },
+  "homepage": "https://github.com/SuperInstance/tensor-spline#readme",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

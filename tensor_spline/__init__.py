@@ -19,6 +19,22 @@ from .spline import SplineLinear, inject_spline, compression_ratio, EisensteinLa
 from .low_rank import LowRankLinear, LowRankClassifier, inject_low_rank, recommend_variant, VARIANT_GUIDE
 from .hierarchical_spline import HierarchicalSplineLinear, HierarchicalSplineClassifier, inject_hierarchical_spline
 
+__all__ = [
+    "SplineLinear",
+    "EisensteinLattice",
+    "inject_spline",
+    "compression_ratio",
+    "LowRankLinear",
+    "LowRankClassifier",
+    "inject_low_rank",
+    "recommend_variant",
+    "VARIANT_GUIDE",
+    "HierarchicalSplineLinear",
+    "HierarchicalSplineClassifier",
+    "inject_hierarchical_spline",
+    "__version__",
+]
+
 __version__ = "1.0.0"
 
 # Auto-register with mesh if plato-core is installed

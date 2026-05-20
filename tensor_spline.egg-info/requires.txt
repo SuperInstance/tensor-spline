@@ -1,1 +1,4 @@
 torch>=2.0
+
+[mesh]
+plato-core>=0.1.0

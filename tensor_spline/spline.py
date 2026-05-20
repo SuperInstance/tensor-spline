@@ -247,6 +247,13 @@ class SplineLinear(nn.Module):
     ) -> None:
         super().__init__()
 
+        if in_features < 1:
+            raise ValueError(f"in_features must be >= 1, got {in_features}")
+        if out_features < 1:
+            raise ValueError(f"out_features must be >= 1, got {out_features}")
+        if n_control_points < 2:
+            raise ValueError(f"n_control_points must be >= 2, got {n_control_points}")
+
         if basis not in self._VALID_BASES:
             raise ValueError(
                 f"basis must be one of {set(self._VALID_BASES)}, "
