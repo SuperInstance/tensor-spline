@@ -1,3 +1,12 @@
+Metadata-Version: 2.4
+Name: tensor-spline
+Version: 1.0.0
+Summary: Compressed neural network layers — Eisenstein lattice splines and low-rank factorization
+License: MIT
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: torch>=2.0
+
 # tensor-spline
 
 Compressed neural network layers — Eisenstein lattice splines and low-rank factorization.
@@ -64,7 +73,6 @@ Use LowRankLinear for classification tasks instead.
 ## Related
 
 - **[plato-training](https://github.com/SuperInstance/plato-training)** — Micro model training (primary consumer of SplineLinear)
-- **[eisenstein-embed](https://github.com/SuperInstance/eisenstein-embed)** — 5-layer semantic matching cascade (uses SplineLinear for 20× embedding quantization)
 - **[eisenstein](https://github.com/SuperInstance/eisenstein)** — Eisenstein integer arithmetic (mathematical foundation)
 - **[plato-types](https://github.com/SuperInstance/plato-types)** — Tile lifecycle and provenance
 - **[ASSEMBLY-GUIDE](https://github.com/SuperInstance/plato-training/blob/master/ASSEMBLY-GUIDE.md)** — Full ecosystem assembly guide
