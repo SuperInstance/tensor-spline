@@ -23,7 +23,7 @@ import torch.nn as nn
 from tensor_spline import SplineLinear, inject_spline, LowRankLinear, recommend_variant
 
 # Option 1: Direct construction
-layer = SplineLinear(512, 512, n_control_points=16)
+layer = SplineLinear(512, 512, n_control_points=16, bias=False)
 # 262,144 params → 16 params (16,384:1 compression)
 
 # Option 2: Inject into any model
