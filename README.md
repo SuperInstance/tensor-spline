@@ -1,5 +1,10 @@
 # tensor-spline
 
+[![PyPI version](https://img.shields.io/pypi/v/tensor-spline.svg)](https://pypi.org/project/tensor-spline/)
+[![Python](https://img.shields.io/pypi/pyversions/tensor-spline.svg)](https://pypi.org/project/tensor-spline/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen.svg)](tests/)
+
 Compressed neural network layers — Eisenstein lattice splines and low-rank factorization.
 
 ## What's Novel

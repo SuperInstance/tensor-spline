@@ -41,10 +41,15 @@ class HierarchicalSplineLinear(nn.Module):
         bias: bool = True,
     ):
         super().__init__()
+        if in_features < 1:
+            raise ValueError(f"in_features must be >= 1, got {in_features}")
+        if out_features < 1:
+            raise ValueError(f"out_features must be >= 1, got {out_features}")
+
         self.in_features = in_features
         self.out_features = out_features
         self.patch_size = patch_size
-        
+
         # Coarse level: covers entire weight matrix
         self.coarse_lattice = EisensteinLattice(coarse_pts)
         self.coarse_values = nn.Parameter(torch.randn(coarse_pts) * 0.01)
@@ -188,7 +193,7 @@ class HierarchicalSplineClassifier(nn.Module):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.1)
     
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.relu(self.W_query(x))
         x = self.dropout(x)
         x = self.relu(self.W_value(x))

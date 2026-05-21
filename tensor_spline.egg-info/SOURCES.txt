@@ -4,6 +4,7 @@ tensor_spline/__init__.py
 tensor_spline/hierarchical_spline.py
 tensor_spline/low_rank.py
 tensor_spline/mesh.py
+tensor_spline/py.typed
 tensor_spline/spline.py
 tensor_spline/spline_nd.py
 tensor_spline.egg-info/PKG-INFO

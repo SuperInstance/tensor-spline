@@ -40,10 +40,17 @@ class LowRankLinear(nn.Module):
         init_scale: float = 0.01,
     ):
         super().__init__()
+        if in_features < 1:
+            raise ValueError(f"in_features must be >= 1, got {in_features}")
+        if out_features < 1:
+            raise ValueError(f"out_features must be >= 1, got {out_features}")
+        if rank < 1:
+            raise ValueError(f"rank must be >= 1, got {rank}")
+
         self.in_features = in_features
         self.out_features = out_features
         self.rank = rank
-        
+
         self.U = nn.Parameter(torch.randn(in_features, rank) * init_scale)
         self.V = nn.Parameter(torch.randn(rank, out_features) * init_scale)
         
@@ -81,8 +88,8 @@ class LowRankClassifier(nn.Module):
         self.out_head = nn.Linear(hidden, num_classes)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.1)
-    
-    def forward(self, x):
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.relu(self.W_query(x))
         x = self.dropout(x)
         x = self.relu(self.W_value(x))
