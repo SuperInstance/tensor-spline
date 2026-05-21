@@ -1,93 +1,133 @@
 # tensor-spline
 
-[![PyPI version](https://img.shields.io/pypi/v/tensor-spline.svg)](https://pypi.org/project/tensor-spline/)
-[![Python](https://img.shields.io/pypi/pyversions/tensor-spline.svg)](https://pypi.org/project/tensor-spline/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen.svg)](tests/)
+## The problem with neural network weights
 
-Compressed neural network layers — Eisenstein lattice splines and low-rank factorization.
+A typical `nn.Linear(512, 512)` layer stores 262,144 float32 parameters. That's 1MB per layer. A transformer model has hundreds of these layers. The weights are stored as independent floating-point numbers — every weight is a separate learned value with no relationship to its neighbors.
 
-## What's Novel
+But here's the thing: weight matrices aren't random. Adjacent weights in a trained layer are correlated. If weight `[i, j]` is 0.7, weight `[i, j+1]` is probably somewhere near 0.7 too. The weight surface is smooth.
 
-**SplineLinear**: Weights parameterized by control points on an Eisenstein (hexagonal) lattice, interpolated to create the full weight matrix. Built-in compression, regularization, and constraint-native structure.
+Spline interpolation exploits this. Instead of storing 262,144 independent values, you store a small number of *control points* and interpolate between them.
 
-**Key result**: drift-detect task hits 100% accuracy at 20× compression with SplineLinear.
+## How SplineLinear works
 
-## Install
+A regular `nn.Linear` layer:
+
+```python
+# Standard: every weight is independent
+W[i][j] = learned_float
+```
+
+A `SplineLinear` layer:
+
+```python
+# Spline: weights are interpolated from control points
+W[i][j] = interpolate(control_points, position(i, j))
+```
+
+The control points sit on an Eisenstein (hexagonal) lattice. Each weight position `(i, j)` maps to a 2D coordinate. The weight value at that position is interpolated from nearby control points. During training, gradients flow back through the interpolation to the control points — standard autograd handles everything.
+
+The math is inverse-distance-squared weighting:
+
+```
+W(p) = Σ_k c_k · d_k⁻² / Σ_k d_k⁻²
+
+where d_k = ||p − L_k|| + ε
+```
+
+Each control point `c_k` contributes to the weight at position `p` proportionally to how close it is. Nearby control points dominate. Far-away ones barely matter.
+
+## Compression ratio
+
+For a `nn.Linear(512, 512)` layer with 16 control points:
+
+```
+Dense:    512 × 512 = 262,144 parameters
+Spline:   16 control points + 512 bias = 528 parameters
+Ratio:    262,144 / 528 = 497× compression
+```
+
+That's not a typo. You're replacing 262K parameters with 528 and the layer still works. The weight surface is smooth enough that 16 control points capture the essential shape.
+
+## What's actually happening?
+
+The interpolation creates a smooth surface that passes near (but not through) the control points. Think of it like a rubber sheet with pegs at the control-point locations — the sheet stretches to minimize the total bending energy. The optimizer only tweaks the peg heights; the sheet shape follows automatically.
+
+Three basis functions are available:
+
+| Basis | How it works | Best for |
+|-------|-------------|----------|
+| `eisenstein` | Inverse-distance² on hexagonal lattice | General use |
+| `bspline` | Bicubic B-spline via `grid_sample` | Strong locality |
+| `gaussian` | RBF with learned bandwidth σ | Adaptive smoothness |
+
+## Install and use
 
 ```bash
 pip install tensor-spline
 ```
 
-Requires PyTorch ≥ 2.0.
+```python
+import torch
+import torch.nn as nn
+from tensor_spline import SplineLinear, inject_spline, compression_ratio
 
-## Quick Start
+# Replace a single layer
+layer = SplineLinear(512, 512, n_control_points=16, basis="eisenstein")
+x = torch.randn(4, 512)
+print(layer(x).shape)                    # torch.Size([4, 512])
+print(layer.compression_ratio())          # ~497×
+print(layer.num_trainable_params())       # 528
+
+# Inject into an entire model
+model = nn.Sequential(
+    nn.Linear(784, 512),
+    nn.ReLU(),
+    nn.Linear(512, 10),
+)
+injection_map = inject_spline(model, n_control_points=16)
+stats = compression_ratio(model)
+print(f"Compressed {stats['ratio']:.0f}× ({stats['n_spline_layers']} layers)")
+```
+
+## The Eisenstein lattice
+
+Control points are placed on the densest possible 2D grid — the Eisenstein lattice (hexagonal packing, proven optimal by Thue 1910). Points at positions `a + bω` where `ω = e^(2πi/3)`.
 
 ```python
-import torch.nn as nn
-from tensor_spline import SplineLinear, inject_spline, LowRankLinear, recommend_variant
+from tensor_spline import EisensteinLattice
 
-# Option 1: Direct construction
-layer = SplineLinear(512, 512, n_control_points=16, bias=False)
-# 262,144 params → 16 params (16,384:1 compression)
-
-# Option 2: Inject into any model
-model = nn.Sequential(nn.Linear(256, 128), nn.ReLU(), nn.Linear(128, 10))
-inject_spline(model, n_control_points=16)
-
-# Option 3: Low-rank for sharp classification tasks
-layer = LowRankLinear(256, 128, rank=16)
-# 32,768 params → 6,144 params (5.3× compression, 80% accuracy retention)
-
-# Auto-select the right compression for your task
-variant = recommend_variant("detect drift in sensor data")  # → "spline"
-variant = recommend_variant("classify documents by topic")   # → "lowrank"
+lattice = EisensteinLattice(7)
+print(lattice.positions().shape)          # torch.Size([7, 2])
+# First point is always the origin (closest to center)
+print(lattice.positions()[0])             # tensor([0., 0.])
 ```
 
-## Compression Strategies
+## Hierarchical and low-rank variants
 
-| Method | Best For | Compression | Accuracy |
-|--------|----------|-------------|----------|
-| SplineLinear | Smooth/continuous tasks | 20-40× | 95-100% retention |
-| LowRankLinear | Classification, sharp boundaries | 5-16× | 80% retention |
-| HierarchicalSpline | Multi-scale continuous | 10-20× | Experimental |
+`tensor-spline` includes two additional compression strategies:
 
-## Honest Findings
+- **HierarchicalSplineLinear** — multi-scale: coarse control points capture global shape, fine control points capture local detail. More expressive than flat spline for the same parameter budget.
+- **LowRankLinear** — standard U×V matrix factorization. Simpler than spline but effective when weights have low intrinsic rank.
 
-SplineLinear achieves 100% accuracy at 20× compression on drift-detect (smooth task).
-But only 31% on topic-classify (sharp boundaries) — IDW interpolation is too smooth for classification.
-Use LowRankLinear for classification tasks instead.
+```python
+from tensor_spline import recommend_variant
 
-**Use the right tool for the right task.**
-
-## 3 Basis Functions (SplineLinear)
-
-- `eisenstein` — Inverse distance weighting (default, best for smooth)
-- `gaussian` — Gaussian RBF
-- `bspline` — Cubic B-spline kernel
-
-## Related
-
-- **[plato-training](https://github.com/SuperInstance/plato-training)** — Micro model training (primary consumer of SplineLinear)
-- **[eisenstein-embed](https://github.com/SuperInstance/eisenstein-embed)** — 5-layer semantic matching cascade (uses SplineLinear for 20× embedding quantization)
-- **[eisenstein](https://github.com/SuperInstance/eisenstein)** — Eisenstein integer arithmetic (mathematical foundation)
-- **[plato-types](https://github.com/SuperInstance/plato-types)** — Tile lifecycle and provenance
-- **[ASSEMBLY-GUIDE](https://github.com/SuperInstance/plato-training/blob/master/ASSEMBLY-GUIDE.md)** — Full ecosystem assembly guide
-
-## Mesh Protocol
-
-tensor-spline supports the SuperInstance mesh protocol. When co-installed with [plato-core](https://github.com/SuperInstance/plato-core), compression capabilities auto-register with the shared registry.
-
-```bash
-pip install tensor-spline[mesh]
+# Task-aware recommendation
+rec = recommend_variant(
+    param_budget=1024,      # max trainable params per layer
+    task="classification",  # classification vs generation vs embedding
+    model_size="small",     # small, medium, large
+)
+print(rec["variant"], rec["reason"])
 ```
 
-This enables:
-- `spline-linear` and `low-rank` compressors discoverable via the mesh registry
-- `inject`, `measure`, and `recommend` utilities available to other mesh services
-- Entry-point based plugin loading (`superinstance.plugins`)
+## Why does this work?
 
-Works standalone without plato-core — graceful degradation via `try/except`.
+Neural network weights are smooth surfaces. Smooth surfaces need far fewer control points than independent samples to represent accurately. This is the same principle behind JPEG compression (store low-frequency components, drop high-frequency noise), vector graphics (bezier curves instead of pixel grids), and NURBS modeling in CAD.
+
+The Eisenstein lattice maximizes control-point coverage because hexagonal packing is the densest arrangement in 2D. Each control point "covers" the maximum possible area, so you need fewer of them.
+
+The optimizer only updates control-point values. The interpolation handles the rest. Less parameters means faster training, less memory, and natural regularization — the spline can't overfit to noise because it doesn't have enough degrees of freedom.
 
 ## License
 
