@@ -1,0 +1,2 @@
+[superinstance.plugins]
+tensor-spline = tensor_spline.mesh:register_tensor_spline
