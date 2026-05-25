@@ -19,6 +19,7 @@ Repository = "https://github.com/example/tensor-spline"
 
 [project.optional-dependencies]
 mesh = ["plato-core>=0.1.0"]
+dev = ["pytest>=7.0"]
 
 [project.entry-points."superinstance.plugins"]
 tensor-spline = "tensor_spline.mesh:register_tensor_spline"
