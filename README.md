@@ -129,6 +129,13 @@ The Eisenstein lattice maximizes control-point coverage because hexagonal packin
 
 The optimizer only updates control-point values. The interpolation handles the rest. Less parameters means faster training, less memory, and natural regularization — the spline can't overfit to noise because it doesn't have enough degrees of freedom.
 
+## Related Repos
+
+- **[flux-tensor-midi](https://github.com/SuperInstance/flux-tensor-midi)** — INT8-saturated MIDI for neural synthesis (uses Eisenstein lattice)
+- **[constraint-instrument](https://github.com/SuperInstance/constraint-instrument)** — Constraint-based music generation (uses spline surfaces)
+- **[plato-room-musician](https://github.com/SuperInstance/plato-room-musician)** — Sonify fleet activity via MIDI
+- **[penrose-memory](https://github.com/SuperInstance/penrose-memory)** — Aperiodic memory palace (related aperiodic math)
+
 ## License
 
 MIT
